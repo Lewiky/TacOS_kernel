@@ -1,6 +1,6 @@
 #include "hilevel.h"
 
-pcb_t pcb[ 3 ]; int executing = 0;
+pcb_t pcb[ 2 ]; int executing = 0;
 
 void scheduler( ctx_t* ctx ) {
   int nextProcess = (executing+1)%3;             // determine next process to run
@@ -13,10 +13,8 @@ void scheduler( ctx_t* ctx ) {
   return;
 }
 
-extern void     main_P1(); 
-extern uint32_t tos_P1;
-extern void     main_P2(); 
-extern uint32_t tos_P2;
+extern void     main_P4(); 
+extern uint32_t tos_P4;
 extern void     main_P3(); 
 extern uint32_t tos_P3;
 
@@ -44,25 +42,18 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   int_enable_irq();
 
   memset( &pcb[ 0 ], 0, sizeof( pcb_t ) );
-  pcb[ 0 ].pid      = 1;
+  pcb[ 0 ].pid      = 2;
   pcb[ 0 ].status   = STATUS_READY;
   pcb[ 0 ].ctx.cpsr = 0x50;
-  pcb[ 0 ].ctx.pc   = ( uint32_t )( &main_P1 );
-  pcb[ 0 ].ctx.sp   = ( uint32_t )( &tos_P1  );
+  pcb[ 0 ].ctx.pc   = ( uint32_t )( &main_P4 );
+  pcb[ 0 ].ctx.sp   = ( uint32_t )( &tos_P4 );
 
   memset( &pcb[ 1 ], 0, sizeof( pcb_t ) );
-  pcb[ 1 ].pid      = 2;
+  pcb[ 1 ].pid      = 3;
   pcb[ 1 ].status   = STATUS_READY;
   pcb[ 1 ].ctx.cpsr = 0x50;
-  pcb[ 1 ].ctx.pc   = ( uint32_t )( &main_P2 );
-  pcb[ 1 ].ctx.sp   = ( uint32_t )( &tos_P2  );
-
-  memset( &pcb[ 2 ], 0, sizeof( pcb_t ) );
-  pcb[ 2 ].pid      = 3;
-  pcb[ 2 ].status   = STATUS_READY;
-  pcb[ 2 ].ctx.cpsr = 0x50;
-  pcb[ 2 ].ctx.pc   = ( uint32_t )( &main_P3 );
-  pcb[ 2 ].ctx.sp   = ( uint32_t )( &tos_P3  );
+  pcb[ 1 ].ctx.pc   = ( uint32_t )( &main_P3 );
+  pcb[ 1 ].ctx.sp   = ( uint32_t )( &tos_P3  );
 
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.
