@@ -1,15 +1,29 @@
 #include "hilevel.h"
+#define priority(process) (pcb[process].priority + (time - pcb[process].readyTime))
 
-pcb_t pcb[ 2 ]; int executing = 0;
+const int maxProcess = 100;
+int numInQueue = 2;
+pcb_t pcb[100];
+int executing = 0;
+int time = 0;
 
 void scheduler( ctx_t* ctx ) {
-  int nextProcess = (executing+1)%3;             // determine next process to run
-
+  //Decide next executing process based on base priority and time they've been waiting
+  int nextProcess = 0;
+  for(int i = 0; i <numInQueue; i++){
+    if(priority(nextProcess) < priority(i)){
+        nextProcess = i;
+    }
+  }
+  //Perform Context Switch
   memcpy( &pcb[ executing ].ctx, ctx, sizeof( ctx_t ) ); // preserve P_1
   pcb[ executing ].status = STATUS_READY;                // update   P_1 status
+  pcb[ executing ].readyTime = time;
   memcpy( ctx, &pcb[ nextProcess ].ctx, sizeof( ctx_t ) ); // restore  P_2
   pcb[ nextProcess ].status = STATUS_EXECUTING;            // update   P_2 status
+  
   executing = nextProcess;                                 // update   index => P_2
+  time = (time+1)%maxProcess;
   return;
 }
 
@@ -47,6 +61,8 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   pcb[ 0 ].ctx.cpsr = 0x50;
   pcb[ 0 ].ctx.pc   = ( uint32_t )( &main_P4 );
   pcb[ 0 ].ctx.sp   = ( uint32_t )( &tos_P4 );
+  pcb[ 0 ].priority = 1;
+  pcb[ 0 ].readyTime = 0;
 
   memset( &pcb[ 1 ], 0, sizeof( pcb_t ) );
   pcb[ 1 ].pid      = 3;
@@ -54,6 +70,8 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   pcb[ 1 ].ctx.cpsr = 0x50;
   pcb[ 1 ].ctx.pc   = ( uint32_t )( &main_P3 );
   pcb[ 1 ].ctx.sp   = ( uint32_t )( &tos_P3  );
+  pcb[ 0 ].priority = 1;
+  pcb[ 0 ].readyTime = 1;
 
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.

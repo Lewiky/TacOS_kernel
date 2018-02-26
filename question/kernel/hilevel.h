@@ -42,9 +42,11 @@ typedef struct {
 } ctx_t;
 
 typedef struct {
-     pid_t    pid;
-  status_t status;
-     ctx_t    ctx;
+    pid_t    pid;
+    status_t status;
+    ctx_t    ctx;
+    int priority;
+    int readyTime;
 } pcb_t;
 
 #endif
