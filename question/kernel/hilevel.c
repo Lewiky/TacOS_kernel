@@ -2,7 +2,7 @@
 #define priority(process) (pcb[process].priority + (time - pcb[process].readyTime))
 
 const int maxProcess = 100;
-int numInQueue = 2;
+int numInQueue = 1;
 pcb_t pcb[100];
 int executing = 0;
 int time = 0;
@@ -27,10 +27,26 @@ void scheduler( ctx_t* ctx ) {
   return;
 }
 
-extern void     main_P4(); 
-extern uint32_t tos_P4;
-extern void     main_P3(); 
-extern uint32_t tos_P3;
+void addProcess(ctx_t* ctx, int priority){
+  if(numInQueue == maxProcess){ 
+    PL011_putc( UART0, 'X', true );
+    return;
+  }
+  //Create a PCB for the new process
+  memset( &pcb[ numInQueue ], 0, sizeof( pcb_t ) );
+  pcb[ numInQueue ].pid      = numInQueue;
+  pcb[ numInQueue ].status   = STATUS_READY;
+  pcb[ numInQueue ].ctx.pc   = (uint32_t)(&ctx->pc);
+  pcb[ numInQueue ].ctx.sp   = (uint32_t)(&ctx->sp);
+  pcb[ numInQueue ].ctx.cpsr = (uint32_t)(&ctx->cpsr);
+  pcb[ numInQueue ].priority = priority;
+  pcb[ numInQueue ].readyTime = time;
+
+  numInQueue++;
+  }
+
+extern void     main_console(); 
+extern uint32_t tos_console;
 
 void hilevel_handler_rst(ctx_t* ctx ) {
   /* Configure the mechanism for interrupt handling by
@@ -56,22 +72,14 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   int_enable_irq();
 
   memset( &pcb[ 0 ], 0, sizeof( pcb_t ) );
-  pcb[ 0 ].pid      = 2;
+  pcb[ 0 ].pid      = 0;
   pcb[ 0 ].status   = STATUS_READY;
   pcb[ 0 ].ctx.cpsr = 0x50;
-  pcb[ 0 ].ctx.pc   = ( uint32_t )( &main_P4 );
-  pcb[ 0 ].ctx.sp   = ( uint32_t )( &tos_P4 );
+  pcb[ 0 ].ctx.pc   = ( uint32_t )( &main_console );
+  pcb[ 0 ].ctx.sp   = ( uint32_t )( &tos_console );
   pcb[ 0 ].priority = 1;
   pcb[ 0 ].readyTime = 0;
 
-  memset( &pcb[ 1 ], 0, sizeof( pcb_t ) );
-  pcb[ 1 ].pid      = 3;
-  pcb[ 1 ].status   = STATUS_READY;
-  pcb[ 1 ].ctx.cpsr = 0x50;
-  pcb[ 1 ].ctx.pc   = ( uint32_t )( &main_P3 );
-  pcb[ 1 ].ctx.sp   = ( uint32_t )( &tos_P3  );
-  pcb[ 0 ].priority = 1;
-  pcb[ 0 ].readyTime = 1;
 
   /* Once the PCBs are initialised, we (arbitrarily) select one to be
    * restored (i.e., executed) when the function then returns.
@@ -143,6 +151,37 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       }
       ctx->gpr[0] = n;
       break;
+    }
+    case 0x03: { // fork()
+      ctx_t* new_ctx  = ctx;
+      new_ctx->gpr[0] = 0;
+      ctx->gpr[0]     = 1;
+      addProcess(new_ctx,1);
+      break;
+    }
+    case 0x04: {//exit()
+      int x = ctx->gpr[0];
+      //Set the PCB of the current process to 0
+      memset(&pcb[executing],0,sizeof(pcb_t));
+      //move the higher PCB down in the queue
+      for(int i = executing+1 ; i< numInQueue;i++){
+        pcb[i-1] = pcb[i];
+      }
+      numInQueue--;
+      //Invoke the scheduler to select a new process to run
+      scheduler(ctx);
+      break;
+    }
+    case 0x05: {//exec
+      const void* pc = (void*)(ctx->gpr[0]);
+      ctx->pc = (uint32_t)pc;
+      //Allocate stack for the process, assumes ORIGINAL parent process is at top of stack
+      ctx->sp = ctx->sp + ((numInQueue) * 0x00001000);
+      for(int i = 0; i < 13; i++){
+        ctx->gpr[i] = 0;
+      }
+      ctx->cpsr = 0x50;
+      ctx->lr = (uint32_t)(&pc); //stop new processes getting back into their parent's memory
     }
 
     default   : { // 0x?? => unknown/unsupported
