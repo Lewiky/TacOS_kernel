@@ -92,7 +92,7 @@ void main_console() {
     gets( x, 1024 );
     p = strtok( x, " " );
 
-    if( 0 == strcmp( p, "execute"   ) ) {
+    if( 0 == strcmp( p, "x"   ) ) {
       pid_t pid = fork();
 
       if( 0 == pid ) {
@@ -101,7 +101,7 @@ void main_console() {
         yield();
       }
     } 
-    else if( 0 == strcmp( p, "terminate" ) ) {
+    else if( 0 == strcmp( p, "ter" ) ) {
       pid_t pid = atoi( strtok( NULL, " " ) );
       int   s   = atoi( strtok( NULL, " " ) );
 

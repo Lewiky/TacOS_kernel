@@ -187,13 +187,15 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
         ctx->gpr[i] = 0;
       }
       ctx->cpsr = 0x50;
-      ctx->lr = (uint32_t)(pc); //stop new processes getting back into their parent's memory
+      ctx->lr = (uint32_t)(pc); 
+      //stop new processes getting back into their parent's memory
       break;
     }
     case 0x06: { //kill
       pid_t pid = (pid_t)(ctx->gpr[0]);
       int x = (int)(ctx->gpr[1]);
       pcb_t target = pcb[pid];
+      PL011_putc( UART0, x, true );
       //Set the PCB of the current process to 0
       memset(&pcb[pid],0,sizeof(pcb_t));
       //move the higher PCB down in the queue
@@ -212,9 +214,3 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
 
   return;
 }
-
-/*
-Need to copy entire stack of parent into child of fork 
-
-Allocate new stack for child process in fork, not in exec
-*/
