@@ -49,4 +49,10 @@ typedef struct {
     int readyTime;
 } pcb_t;
 
+typedef struct {
+    uint32_t id;
+    uint32_t tos;
+    bool lock;
+} shrm_t;
+
 #endif

@@ -39,6 +39,9 @@ launch-qemu : ${PROJECT_TARGETS}
 launch-gdb  : ${PROJECT_TARGETS}
 	@${GCC_PATH}/bin/${GCC_PREFIX}-gdb -ex "file $(filter %.elf, ${PROJECT_TARGETS})" -ex "target remote ${QEMU_GDB}"
 
+launch-console:
+	@nc 127.0.0.1 1235
+
 kill-qemu   :
 	@-killall -u ${USER} qemu-system-arm > /dev/null 2>&1 || true
 
@@ -47,3 +50,10 @@ kill-gdb    :
 
 clean       : kill-qemu kill-gdb
 	@rm -f core ${PROJECT_OBJECTS} ${PROJECT_TARGETS}
+
+# customer launcher using applescript for iTerm 2
+launch:
+	@osascript launcher.scpt
+
+relaunch:
+	@osascript relauncher.scpt

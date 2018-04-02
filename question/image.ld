@@ -28,4 +28,7 @@ SECTIONS {
   /* allocate stack for 100 main processes  */
   .       = . + 0x64000;  
   tos_main  = .;
+  /* allocate stack for shared memory */
+  .       = . + 0x0000a000;
+  tos_shrm = .;
 }

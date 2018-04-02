@@ -147,3 +147,25 @@ void nice( int pid, int x ) {
 
   return;
 }
+
+void* shrm( int x ) {
+  uint32_t r;
+  asm volatile( "mov r0, %1 \n" // assign r0 =  pid
+                "svc %1     \n" // make system call SYS_SHRM
+                "mov %0, r0 \n" // assign r = r0
+              : "=r" (r)
+              : "I" (SYS_SHRM), "r" (x)
+              : "r0");
+
+  return (void*)r;
+}
+
+void  shrd( int x) {
+  asm volatile( "mov r0, %1 \n" // assign r0 =  x
+                "svc %0     \n" // make system call SYS_SHRD
+              : 
+              : "I" (SYS_SHRD), "r" (x)
+              : "r0");
+
+  return;
+}

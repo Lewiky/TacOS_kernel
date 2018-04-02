@@ -1,13 +1,17 @@
 #include "hilevel.h"
 #define priority(process) (pcb[process].priority + (time - pcb[process].readyTime))
+#define stack(process) (&tos_main - (0x1000 * process))
 
 const int maxProcess = 100;
 int numInQueue = 1;
 pcb_t pcb[100];
+shrm_t shrm[10];
+int numShrm = 0;
 int executing = 0;
 int time = 0;
 extern void     main_console(); 
 extern uint32_t tos_main;
+extern uint32_t tos_shrm;
 
 void scheduler( ctx_t* ctx ) {
   //Decide next executing process based on base priority and time they've been waiting
@@ -34,10 +38,12 @@ void addProcess(ctx_t* ctx, int priority){
     PL011_putc( UART0, 'X', true );
     return;
   }
-  uint32_t newSP = &tos_main - numInQueue*(0x1000);
+  uint32_t new_tos = ((uint32_t)&tos_main) - numInQueue*(0x1000);
   //Copy the stack from the parent into new process
-  uint32_t tos_current = &tos_main - executing*(0x1000);
-  memcpy((void*)newSP,(void*)tos_current,tos_current-ctx->sp);
+  uint32_t tos_current = ((uint32_t)&tos_main) - executing*(0x1000);
+  uint32_t newSP = new_tos - (tos_current-ctx->sp);
+  memcpy((void*)new_tos,(void*)tos_current,tos_current-ctx->sp);
+
   //Create a PCB for the new process
   memset( &pcb[ numInQueue ], 0, sizeof( pcb_t ) );
   pcb[ numInQueue ].pid      = numInQueue;
@@ -181,11 +187,7 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       break;
     }
     case 0x05: {//exec
-      ctx->sp = tos_main + executing*0x1000;
       const void* pc = (void*)(ctx->gpr[0]);
-      for(int i = 0; i < 13; i++){
-        ctx->gpr[i] = 0;
-      }
       ctx->cpsr = 0x50;
       ctx->lr = (uint32_t)(pc); 
       //stop new processes getting back into their parent's memory
@@ -194,10 +196,18 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
     case 0x06: { //kill
       pid_t pid = (pid_t)(ctx->gpr[0]);
       int x = (int)(ctx->gpr[1]);
-      pcb_t target = pcb[pid];
+      int target = -1;
+      for(int i = 0; i < numInQueue; i++){
+        if(pcb[i].pid == pid ){
+          target = i;
+        }
+      }
+      if(target == -1){
+        break;
+      }
       PL011_putc( UART0, x, true );
       //Set the PCB of the current process to 0
-      memset(&pcb[pid],0,sizeof(pcb_t));
+      memset(&pcb[target],0,sizeof(pcb_t));
       //move the higher PCB down in the queue
       for(int i = pid+1 ; i< numInQueue;i++){
         pcb[i-1] = pcb[i];
@@ -205,6 +215,58 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       numInQueue--;
       //Invoke the scheduler to select a new process to run
       scheduler(ctx);
+      break;
+    }
+    case 0x07 :{ //nice
+      pid_t pid = (pid_t)(ctx->gpr[0]);
+      int x = (int)(ctx->gpr[1]);
+      int target = -1;
+      for(int i = 0; i < numInQueue; i++){
+        if(pcb[i].pid == pid ){
+          target = i;
+        }
+      }
+      if(target == -1){
+        break;
+      }
+      pcb[target].priority = x;
+      break;
+    }
+    case 0x08 :{ //shrm
+      uint32_t id = (uint32_t)ctx->gpr[0];
+      int target = -1;
+      for(int i = 0; i < 10; i++){
+        if(shrm[i].id == id){
+          target = i;
+        }
+      }
+      if(target == -1){
+        shrm[numShrm].id = id;
+        shrm[numShrm].tos = (uint32_t)tos_shrm - (numShrm*0x1000);
+        shrm[numShrm].lock = true;
+        ctx->gpr[0] = shrm[numShrm].tos;
+        numShrm++;
+      }else{
+        if(shrm[target].lock){
+          scheduler(ctx);
+        }
+        else{
+          shrm[target].lock = true;
+          ctx->gpr[0] = shrm[target].tos;
+        }
+      }
+      break;
+    }
+    case 0x09 :{ //shrd
+      uint32_t id = (uint32_t)ctx->gpr[0];
+      int target = -1;
+      for(int i = 0; i < 10; i++){
+        if(shrm[i].id == id){
+          target = i;
+        }
+      }
+      if(target == -1){break;}
+      shrm[target].lock = false;
       break;
     }
     default   : { // 0x?? => unknown/unsupported
