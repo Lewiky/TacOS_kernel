@@ -105,6 +105,9 @@ void main_console() {
           exec(address);
         }else {yield();}
       }else{
+        // char* string;
+        // itoa(string,pid);
+        // puts(strcat(strcat("PID: " ,string),"\n"),8);
         yield();
       }
     } 

@@ -5,7 +5,7 @@
 const int maxProcess = 100;
 int numInQueue = 1;
 pcb_t pcb[100];
-shrm_t shrm[10];
+shrm_t shrmA[10];
 int numShrm = 0;
 int executing = 0;
 int time = 0;
@@ -233,23 +233,23 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       uint32_t id = (uint32_t)ctx->gpr[0];
       int target = -1;
       for(int i = 0; i < 10; i++){
-        if(shrm[i].id == id){
+        if(shrmA[i].id == id){
           target = i;
         }
       }
       if(target == -1){
-        shrm[numShrm].id = id;
-        shrm[numShrm].tos = (uint32_t)tos_shrm - (numShrm*0x1000);
-        shrm[numShrm].lock = true;
-        ctx->gpr[0] = shrm[numShrm].tos;
+        shrmA[numShrm].id = id;
+        shrmA[numShrm].tos = (uint32_t)&tos_shrm - (numShrm*0x1000);
+        shrmA[numShrm].lock = true;
+        ctx->gpr[0] = shrmA[numShrm].tos;
         numShrm++;
       }else{
-        if(shrm[target].lock){
+        if(shrmA[target].lock){
           scheduler(ctx);
         }
         else{
-          shrm[target].lock = true;
-          ctx->gpr[0] = shrm[target].tos;
+          shrmA[target].lock = true;
+          ctx->gpr[0] = shrmA[target].tos;
         }
       }
       break;
@@ -258,12 +258,12 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       uint32_t id = (uint32_t)ctx->gpr[0];
       int target = -1;
       for(int i = 0; i < 10; i++){
-        if(shrm[i].id == id){
+        if(shrmA[i].id == id){
           target = i;
         }
       }
       if(target == -1){break;}
-      shrm[target].lock = false;
+      shrmA[target].lock = false;
       break;
     }
     default   : { // 0x?? => unknown/unsupported

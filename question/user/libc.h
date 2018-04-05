@@ -77,7 +77,7 @@ extern int  kill( pid_t pid, int x );
 extern void nice( pid_t pid, int x );
 //Get a pointer to shared memory with id x;
 extern void* shrm( int x);
-//Finish with shared memory with id x;
+//Release shared memory with id x;
 extern void shrd(int x);
 
 #endif

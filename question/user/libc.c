@@ -150,7 +150,7 @@ void nice( int pid, int x ) {
 
 void* shrm( int x ) {
   uint32_t r;
-  asm volatile( "mov r0, %1 \n" // assign r0 =  pid
+  asm volatile( "mov r0, %2 \n" // assign r0 =  x
                 "svc %1     \n" // make system call SYS_SHRM
                 "mov %0, r0 \n" // assign r = r0
               : "=r" (r)
