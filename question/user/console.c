@@ -52,7 +52,7 @@ void* load( char* x ) {
   else if( 0 == strcmp( x, "shared" ) ) {
     return &main_shared;
   }
-
+  puts( "unknown command\n", 16 );
   return NULL;
 }
 
@@ -100,7 +100,10 @@ void main_console() {
       pid_t pid = fork();
 
       if( 0 == pid ) {
-        exec(load( strtok(NULL, " ")));
+        void* address = load( strtok(NULL, " "));
+        if(address){
+          exec(address);
+        }else {yield();}
       }else{
         yield();
       }

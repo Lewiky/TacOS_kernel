@@ -9,22 +9,29 @@ shrm_t shrm[10];
 int numShrm = 0;
 int executing = 0;
 int time = 0;
+int pidCount = 1;
 extern void     main_console(); 
 extern uint32_t tos_main;
 extern uint32_t tos_shrm;
+
+uint32_t generate_pid(){
+  return pidCount++;
+}
 
 void scheduler( ctx_t* ctx ) {
   //Decide next executing process based on base priority and time they've been waiting
   int nextProcess = 0;
   for(int i = 0; i <numInQueue; i++){
-    if(priority(nextProcess) < priority(i)){
+    if(priority(nextProcess) < priority(i) && pcb[i].status == STATUS_READY){
         nextProcess = i;
     }
   }
   //Perform Context Switch
   memcpy( &pcb[ executing ].ctx, ctx, sizeof( ctx_t ) ); // preserve P_1
-  pcb[ executing ].status = STATUS_READY;                // update   P_1 status
-  pcb[ executing ].readyTime = time;
+  if(pcb[executing].status == STATUS_EXECUTING){
+    pcb[ executing ].status = STATUS_READY;                // update   P_1 status
+    pcb[ executing ].readyTime = time;
+  }
   memcpy( ctx, &pcb[ nextProcess ].ctx, sizeof( ctx_t ) ); // restore  P_2
   pcb[ nextProcess ].status = STATUS_EXECUTING;            // update   P_2 status
   
@@ -46,7 +53,7 @@ void addProcess(ctx_t* ctx, int priority){
 
   //Create a PCB for the new process
   memset( &pcb[ numInQueue ], 0, sizeof( pcb_t ) );
-  pcb[ numInQueue ].pid      = numInQueue;
+  pcb[ numInQueue ].pid      = generate_pid();
   pcb[ numInQueue ].status   = STATUS_READY;
   pcb[ numInQueue ].ctx.pc   = ctx->pc;
   pcb[ numInQueue ].ctx.sp   = newSP;
@@ -166,22 +173,19 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       break;
     }
     case 0x03: { // fork()
-      ctx_t* new_ctx  = ctx;
-      new_ctx->gpr[0] = 0;
-      ctx->gpr[0]     = 1;
-      addProcess(new_ctx,1);
+      ctx_t new_ctx = *ctx;
+      new_ctx.gpr[0] = 0;
+      ctx->gpr[0]     = numInQueue;
+      addProcess(&new_ctx,1);
+      
       break;
     }
     case 0x04: {//exit()
       int x = ctx->gpr[0];
       PL011_putc( UART0, x, true );
-      //Set the PCB of the current process to 0
-      memset(&pcb[executing],0,sizeof(pcb_t));
-      //move the higher PCB down in the queue
-      for(int i = executing+1 ; i< numInQueue;i++){
-        pcb[i-1] = pcb[i];
-      }
-      numInQueue--;
+      //Set the status of the current process to terminated
+      pcb[executing].status = STATUS_TERMINATED;
+      //numInQueue--;
       //Invoke the scheduler to select a new process to run
       scheduler(ctx);
       break;
@@ -205,14 +209,7 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       if(target == -1){
         break;
       }
-      PL011_putc( UART0, x, true );
-      //Set the PCB of the current process to 0
-      memset(&pcb[target],0,sizeof(pcb_t));
-      //move the higher PCB down in the queue
-      for(int i = pid+1 ; i< numInQueue;i++){
-        pcb[i-1] = pcb[i];
-      }
-      numInQueue--;
+      pcb[target].status = STATUS_TERMINATED;
       //Invoke the scheduler to select a new process to run
       scheduler(ctx);
       break;
