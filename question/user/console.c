@@ -38,6 +38,7 @@ extern void main_P3();
 extern void main_P4(); 
 extern void main_P5(); 
 extern void main_shared();
+extern void main_philosopher();
 
 void* load( char* x ) {
   if     ( 0 == strcmp( x, "P3" ) ) {
@@ -51,6 +52,9 @@ void* load( char* x ) {
   }
   else if( 0 == strcmp( x, "shared" ) ) {
     return &main_shared;
+  }
+  else if( 0 == strcmp( x, "philosopher" ) ) {
+    return &main_philosopher;
   }
   puts( "unknown command\n", 16 );
   return NULL;

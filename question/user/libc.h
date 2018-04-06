@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 // Define a type that that captures a Process IDentifier (PID).
 
@@ -79,5 +80,7 @@ extern void nice( pid_t pid, int x );
 extern void* shrm( int x);
 //Release shared memory with id x;
 extern void shrd(int x);
+//Write a string of any length to STDOUT
+extern void writes(char* x);
 
 #endif

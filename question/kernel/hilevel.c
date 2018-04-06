@@ -1,11 +1,12 @@
 #include "hilevel.h"
 #define priority(process) (pcb[process].priority + (time - pcb[process].readyTime))
 #define stack(process) (&tos_main - (0x1000 * process))
+#define maxShrm 16
 
 const int maxProcess = 100;
 int numInQueue = 1;
 pcb_t pcb[100];
-shrm_t shrmA[10];
+shrm_t shrmA[maxShrm];
 int numShrm = 0;
 int executing = 0;
 int time = 0;
@@ -36,7 +37,7 @@ void scheduler( ctx_t* ctx ) {
   pcb[ nextProcess ].status = STATUS_EXECUTING;            // update   P_2 status
   
   executing = nextProcess;                                 // update   index => P_2
-  time = (time+1)%maxProcess;
+  time = (time+1)%MAX_INT;
   return;
 }
 
@@ -232,7 +233,7 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
     case 0x08 :{ //shrm
       uint32_t id = (uint32_t)ctx->gpr[0];
       int target = -1;
-      for(int i = 0; i < 10; i++){
+      for(int i = 0; i < maxShrm; i++){
         if(shrmA[i].id == id){
           target = i;
         }
@@ -257,7 +258,7 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
     case 0x09 :{ //shrd
       uint32_t id = (uint32_t)ctx->gpr[0];
       int target = -1;
-      for(int i = 0; i < 10; i++){
+      for(int i = 0; i < maxShrm; i++){
         if(shrmA[i].id == id){
           target = i;
         }

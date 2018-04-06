@@ -12,7 +12,7 @@ void main_shared(){
         void* mem = shrm(1);
         memcpy ((char *)mem, data, sizeof (data));
         shrd(1);
-        write(STDOUT_FILENO,"\nHello from Adult!\n",19);
+        writes(strcat("\nHello fr","om Adult!\n"));
     }
     exit( EXIT_SUCCESS );
 }

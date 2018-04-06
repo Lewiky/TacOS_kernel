@@ -169,3 +169,8 @@ void  shrd( int x) {
 
   return;
 }
+
+void writes(char* x){
+  int length = strlen(x);
+  write(STDOUT_FILENO,x,length);
+}
