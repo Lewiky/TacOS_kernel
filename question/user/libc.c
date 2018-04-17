@@ -170,7 +170,52 @@ void  shrd( int x) {
   return;
 }
 
+char* getChildName(int x, int n){
+  char* r;
+
+  asm volatile( "mov r0, %2 \n" // assign r0 =  x
+                "mov r1, %3 \n" // assign r1 =  n
+                "svc %1     \n" // make system call SYS_CHNAM
+                "mov %0, r0 \n" // assign r0 =    r
+              : "=r" (r) 
+              : "I" (SYS_CHNAM), "r" (x), "r" (n)
+              : "r0", "r1" );
+
+  return r;
+}
+
+int numChild(int x){
+  int r;
+  asm volatile("mov r0, %2 \n"
+               "svc %1     \n"
+               "mov %0, r0 \n"
+               : "=r"(r)
+               : "I"(SYS_CHNUM), "r"(x)
+               : "r0");
+  return r;
+}
+
+int getChildAddress(int x, int n){
+  int r;
+
+  asm volatile( "mov r0, %2 \n" // assign r0 =  x
+                "mov r1, %3 \n" // assign r1 =  n
+                "svc %1     \n" // make system call SYS_CHNAM
+                "mov %0, r0 \n" // assign r0 =    r
+              : "=r" (r) 
+              : "I" (SYS_CHADD), "r" (x), "r" (n)
+              : "r0", "r1" );
+
+  return r;
+}
+
 void writes(char* x){
   int length = strlen(x);
   write(STDOUT_FILENO,x,length);
+}
+
+char* toString(int i){
+  char* string;
+  itoa(string, i);
+  return string;
 }

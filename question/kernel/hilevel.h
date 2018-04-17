@@ -13,7 +13,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-
+#include <limits.h>
 #include <string.h>
 
 // Include functionality relating to the platform.
@@ -26,6 +26,9 @@
 
 #include "lolevel.h"
 #include     "int.h"
+#include "disk.h"
+#include "filesystem.h"
+#include "libc.h"
 
 typedef int pid_t;
 

@@ -29,6 +29,7 @@
 
 #define DISK_SUCCESS (  0 )
 #define DISK_FAILURE ( -1 )
+#define BLOCK_LEN 12
 
 // query the disk block count
 extern int disk_get_block_num();

@@ -12,6 +12,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
 
 // Define a type that that captures a Process IDentifier (PID).
 
@@ -41,6 +42,9 @@ typedef int pid_t;
 #define SYS_NICE      ( 0x07 )
 #define SYS_SHRM      ( 0x08 )
 #define SYS_SHRD      ( 0x09 )
+#define SYS_CHNUM     ( 0x0a )
+#define SYS_CHNAM     ( 0x0b )
+#define SYS_CHADD     ( 0x0c )
 
 #define SIG_TERM      ( 0x00 )
 #define SIG_QUIT      ( 0x01 )
@@ -82,5 +86,13 @@ extern void* shrm( int x);
 extern void shrd(int x);
 //Write a string of any length to STDOUT
 extern void writes(char* x);
+//Get the number of children of a file at address x
+extern int numChild(int x);
+//Get a file x's nth child name
+extern char* getChildName(int x, int n);
+//Wrapper for itoa that returns a string
+extern char* toString(int i);
+//Returns the start address of a
+extern int getChildAddress(int x, int n);
 
 #endif

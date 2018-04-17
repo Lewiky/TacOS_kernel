@@ -39,6 +39,8 @@ extern void main_P4();
 extern void main_P5(); 
 extern void main_shared();
 extern void main_philosopher();
+extern void main_disk();
+extern void main_tree();
 
 void* load( char* x ) {
   if     ( 0 == strcmp( x, "P3" ) ) {
@@ -55,6 +57,12 @@ void* load( char* x ) {
   }
   else if( 0 == strcmp( x, "philosopher" ) ) {
     return &main_philosopher;
+  }
+  else if( 0 == strcmp( x, "disk" ) ) {
+    return &main_disk;
+  }
+  else if( 0 == strcmp( x, "tree" ) ) {
+    return &main_tree;
   }
   puts( "unknown command\n", 16 );
   return NULL;

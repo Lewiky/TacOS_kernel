@@ -10,10 +10,16 @@
  QEMU_GDB         =        127.0.0.1:1234
  QEMU_UART        = stdio
  QEMU_UART       += telnet:127.0.0.1:1235,server
-#QEMU_UART       += telnet:127.0.0.1:1236,server
+ QEMU_UART       += telnet:127.0.0.1:1236,server
 
  GCC_PATH      = ../../gcc-arm-none-eabi-5_2-2015q4
  GCC_PREFIX    = arm-none-eabi
+
+ DISK_FILE        = disk.bin
+ DISK_HOST        = 127.0.0.1
+ DISK_PORT        = 1236
+ DISK_BLOCK_NUM   = 65536
+ DISK_BLOCK_LEN   =    12
 
 # part 2: build commands
 
@@ -57,3 +63,12 @@ launch:
 
 relaunch:
 	@osascript relauncher.scpt
+
+create-disk :
+	@dd of=${DISK_FILE} if=/dev/zero count=${DISK_BLOCK_NUM} bs=${DISK_BLOCK_LEN}
+
+inspect-disk :
+	@hexdump  -C ${DISK_FILE}
+
+launch-disk :
+	@python2 device/disk.py --host=${DISK_HOST} --port=${DISK_PORT} --file=${DISK_FILE} --block-num=${DISK_BLOCK_NUM} --block-len=${DISK_BLOCK_LEN} --debug

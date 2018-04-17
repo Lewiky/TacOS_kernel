@@ -47,7 +47,7 @@ generality, realism, or style of a solution.
 
     Stage 2 : closed generalisations and enhancements
 [x]           - fork, exec and exit system calls                     ( 15%)
-[?]           - Inter-Process Communication (IPC)                    ( 15%)
+[x]           - Inter-Process Communication (IPC)                    ( 15%)
 
     Stage 3 : open   generalisations and enhancements                ( 30%)
 [?]           - MMU-based protection and virtualisation

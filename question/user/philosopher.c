@@ -1,23 +1,24 @@
 #include "philosopher.h"
 
 pid_t philosophers[16];
-char* names[16] = {"Dave","Steve","Paul","John","Han","Luke","Chewy","Frodo","Sam","Pippin","Merry","Aragorn","Legolas","Gandalf","Gimli","Boromir"};
+char* names[16] = {"Ringo","George","Paul","John","Han","Luke","Chewy","Frodo","Sam","Pippin","Merry","Aragorn","Legolas","Gandalf","Gimli","Boromir"};
 const char e[] = "E";
 const char t[] = "T";
 
 //Do nothing, running the nop instruction does nothing, but won't get optimised out
 void sleep(int seconds){
-    for(int i = 0; i< seconds*0x20000000;i++){
-        asm volatile("nop");
-    }
+    // for(int i = 0; i< seconds*0x20000000;i++){
+    //     asm volatile("nop");
+    // }
+    yield();
 }
 
 void think(int num){
-    writes(names[num]);
+    //writes(names[num]);
     // void* mem = shrm(num+16);
     // memcpy ((char *)mem, t, sizeof(t));
     // shrd(num+16);
-    writes(" IS THINKING\n");
+    //writes(" IS THINKING\n");
     sleep(1);
 }
 

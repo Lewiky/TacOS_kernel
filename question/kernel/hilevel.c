@@ -1,16 +1,20 @@
 #include "hilevel.h"
 #define priority(process) (pcb[process].priority + (time - pcb[process].readyTime))
 #define stack(process) (&tos_main - (0x1000 * process))
-#define maxShrm 16
+#define MAXSHRM 16
 
 const int maxProcess = 100;
 int numInQueue = 1;
 pcb_t pcb[100];
-shrm_t shrmA[maxShrm];
+shrm_t shrmA[MAXSHRM];
 int numShrm = 0;
 int executing = 0;
 int time = 0;
 int pidCount = 1;
+int diskBlockNum;
+int diskBlockLen;
+file_t root;
+
 extern void     main_console(); 
 extern uint32_t tos_main;
 extern uint32_t tos_shrm;
@@ -37,7 +41,7 @@ void scheduler( ctx_t* ctx ) {
   pcb[ nextProcess ].status = STATUS_EXECUTING;            // update   P_2 status
   
   executing = nextProcess;                                 // update   index => P_2
-  time = (time+1)%MAX_INT;
+  time = (time+1)%INT_MAX;
   return;
 }
 
@@ -91,6 +95,12 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   GICD0->CTLR         = 0x00000001; // enable GIC distributor
 
   int_enable_irq();
+
+  root = getRoot();
+  if(strcmp(root.name, ".") != 0 ){
+    initFS();
+    root = getRoot();
+  } 
 
   memset( &pcb[ 0 ], 0, sizeof( pcb_t ) );
   pcb[ 0 ].pid      = 0;
@@ -233,7 +243,7 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
     case 0x08 :{ //shrm
       uint32_t id = (uint32_t)ctx->gpr[0];
       int target = -1;
-      for(int i = 0; i < maxShrm; i++){
+      for(int i = 0; i < MAXSHRM; i++){
         if(shrmA[i].id == id){
           target = i;
         }
@@ -258,13 +268,47 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
     case 0x09 :{ //shrd
       uint32_t id = (uint32_t)ctx->gpr[0];
       int target = -1;
-      for(int i = 0; i < maxShrm; i++){
+      for(int i = 0; i < MAXSHRM; i++){
         if(shrmA[i].id == id){
           target = i;
         }
       }
       if(target == -1){break;}
       shrmA[target].lock = false;
+      break;
+    }
+    case 0x0a :{ // numChild
+      uint8_t id = (uint8_t)ctx->gpr[0];
+      file_t file = getFile((uint32_t)id);
+      if(file.type == FILETYPE){
+        ctx->gpr[0] = 0;
+      }else{
+        ctx->gpr[0] = file.length-1; //Length is total number of blocks including header, -1 to remove it
+      }
+      break;
+    }
+    case 0x0b :{ //getChildName
+      uint8_t id = (uint8_t)ctx->gpr[0];
+      int number = (int)ctx->gpr[1];
+      file_t file = getFile((uint32_t)id);
+      if(file.type == FILETYPE){
+        ctx->gpr[0] = 0;
+      }else{
+        file_t child = getFile(file.start+number+1);
+        ctx->gpr[0] = child.name;
+      }
+      break;
+    }
+    case 0x0c :{ //getChildAddress
+      uint8_t id = (uint8_t)ctx->gpr[0];
+      int number = (int)ctx->gpr[1];
+      file_t file = getFile((uint32_t)id);
+      if(file.type == FILETYPE){
+        ctx->gpr[0] = 0;
+      }else{
+        file_t child = getFile(file.start+number+1);
+        ctx->gpr[0] = child.start;
+      }
       break;
     }
     default   : { // 0x?? => unknown/unsupported
