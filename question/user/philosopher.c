@@ -27,9 +27,7 @@ void eat(int num, int count){
     void* right = shrm((num+1)%16);
     writes(names[num]);
     writes(" IS EATING ");
-    char* eatCount;
-    itoa(eatCount,count);
-    writes(eatCount);
+    writes(toString(count));
     writes("\n");
     // void* mem = shrm(num+16);
     // memcpy ((char *)mem, e, sizeof(e));

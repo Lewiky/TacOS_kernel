@@ -29,6 +29,7 @@
 #include "disk.h"
 #include "filesystem.h"
 #include "libc.h"
+#include "banner.h"
 
 typedef int pid_t;
 

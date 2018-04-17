@@ -14,6 +14,9 @@
 #include <string.h>
 #include <math.h>
 
+#define DIRECTORYTYPE 0
+#define FILETYPE 1
+
 // Define a type that that captures a Process IDentifier (PID).
 
 typedef int pid_t;
@@ -45,6 +48,9 @@ typedef int pid_t;
 #define SYS_CHNUM     ( 0x0a )
 #define SYS_CHNAM     ( 0x0b )
 #define SYS_CHADD     ( 0x0c )
+#define SYS_MKFIL     ( 0x0d )
+#define SYS_KLALL     ( 0x0e )
+
 
 #define SIG_TERM      ( 0x00 )
 #define SIG_QUIT      ( 0x01 )
@@ -88,11 +94,15 @@ extern void shrd(int x);
 extern void writes(char* x);
 //Get the number of children of a file at address x
 extern int numChild(int x);
-//Get a file x's nth child name
-extern char* getChildName(int x, int n);
+//Get a file's name
+extern char* getName(int x);
 //Wrapper for itoa that returns a string
 extern char* toString(int i);
 //Returns the start address of a
 extern int getChildAddress(int x, int n);
+//Create a file underneath file at address parent, of type DIR or FILE with name name
+extern int createFile(int parent, int type, char* name);
+//Kills all processes except the console
+extern void killAll();
 
 #endif

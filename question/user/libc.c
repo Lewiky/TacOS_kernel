@@ -170,16 +170,15 @@ void  shrd( int x) {
   return;
 }
 
-char* getChildName(int x, int n){
+char* getName(int x){
   char* r;
 
   asm volatile( "mov r0, %2 \n" // assign r0 =  x
-                "mov r1, %3 \n" // assign r1 =  n
                 "svc %1     \n" // make system call SYS_CHNAM
                 "mov %0, r0 \n" // assign r0 =    r
               : "=r" (r) 
-              : "I" (SYS_CHNAM), "r" (x), "r" (n)
-              : "r0", "r1" );
+              : "I" (SYS_CHNAM), "r" (x)
+              : "r0" );
 
   return r;
 }
@@ -207,6 +206,25 @@ int getChildAddress(int x, int n){
               : "r0", "r1" );
 
   return r;
+}
+
+int createFile(int parent, int type, char* name){
+  int r;
+
+  asm volatile( "mov r0, %1 \n"
+                "mov r1, %2 \n"
+                "mov r2, %3 \n"
+                "svc %4     \n"
+                "mov %0, r0 \n"
+              : "=r" (r)
+              : "r"(name), "r"(type), "r"(parent), "I"(SYS_MKFIL)
+              : "r0", "r1", "r2"
+  );
+  return r;
+}
+
+void killAll(){
+  asm volatile("svc %0"::"I"(SYS_KLALL):);
 }
 
 void writes(char* x){

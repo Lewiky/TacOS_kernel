@@ -14,7 +14,7 @@ int pidCount = 1;
 int diskBlockNum;
 int diskBlockLen;
 file_t root;
-
+ 
 extern void     main_console(); 
 extern uint32_t tos_main;
 extern uint32_t tos_shrm;
@@ -96,8 +96,11 @@ void hilevel_handler_rst(ctx_t* ctx ) {
 
   int_enable_irq();
 
+  banner();
+
   root = getRoot();
-  if(strcmp(root.name, ".") != 0 ){
+  if(!validFile(root) ){
+    writes("\nInitialising FileSystem\n");
     initFS();
     root = getRoot();
   } 
@@ -119,7 +122,7 @@ void hilevel_handler_rst(ctx_t* ctx ) {
   memcpy( ctx, &pcb[ 0 ].ctx, sizeof( ctx_t ) );
   pcb[ 0 ].status = STATUS_EXECUTING;
   executing = 0;
-
+  writes("Ready.\n");
   return;
 }
 
@@ -131,7 +134,7 @@ void hilevel_handler_irq(ctx_t* ctx) {
   // Step 4: handle the interrupt, then clear (or reset) the source.
 
   if( id == GIC_SOURCE_TIMER0 ) {
-    PL011_putc( UART0, 'T', true ); 
+    //PL011_putc( UART0, 'T', true ); 
     scheduler( ctx );
     TIMER0->Timer1IntClr = 0x01;
   }
@@ -283,20 +286,16 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
       if(file.type == FILETYPE){
         ctx->gpr[0] = 0;
       }else{
+        // writes(toString(file.length));
+        // writes("Here\n");
         ctx->gpr[0] = file.length-1; //Length is total number of blocks including header, -1 to remove it
       }
       break;
     }
-    case 0x0b :{ //getChildName
+    case 0x0b :{ //getName
       uint8_t id = (uint8_t)ctx->gpr[0];
-      int number = (int)ctx->gpr[1];
       file_t file = getFile((uint32_t)id);
-      if(file.type == FILETYPE){
-        ctx->gpr[0] = 0;
-      }else{
-        file_t child = getFile(file.start+number+1);
-        ctx->gpr[0] = child.name;
-      }
+      ctx->gpr[0] = file.name;
       break;
     }
     case 0x0c :{ //getChildAddress
@@ -310,6 +309,19 @@ void hilevel_handler_svc( ctx_t* ctx, uint32_t id ) {
         ctx->gpr[0] = child.start;
       }
       break;
+    }
+    case 0x0d :{ //createFile
+      char* name = (char*)ctx->gpr[0];
+      int type = (int)ctx->gpr[1];
+      int parent = (int)ctx->gpr[2];
+      uint8_t file = addFile((uint8_t)parent,name,type);
+      ctx->gpr[0] = (int)file;
+    }
+    case 0x0e :{ // killAll
+      for(int i = 1; i < numInQueue; i++){
+        pcb[i].status = STATUS_TERMINATED;
+      }
+      scheduler(ctx);
     }
     default   : { // 0x?? => unknown/unsupported
       break;

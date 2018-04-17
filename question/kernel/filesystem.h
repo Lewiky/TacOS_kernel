@@ -9,7 +9,7 @@
 
 #define DIRECTORYTYPE 0
 #define FILETYPE 1
-#define dataNum 10
+
 
 typedef struct file {
     char* name; //Name of directory
@@ -24,6 +24,6 @@ void initFS();
 file_t getRoot();
 file_t getFile(uint32_t address);
 uint8_t addFile(uint8_t parentAddress, char* name, int type);
-
+int validFile(file_t file);
 
 #endif

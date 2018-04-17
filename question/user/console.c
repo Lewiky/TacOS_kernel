@@ -128,7 +128,19 @@ void main_console() {
       int   s   = atoi( strtok( NULL, " " ) );
 
       kill( pid, s );
-    } 
+      writes("\n");
+    }
+    else if(0 == strcmp(p, "mkdir")){
+      char* name = strtok(NULL, " ");
+      createFile(0,DIRECTORYTYPE,name);
+      writes("Creating Directory: ");
+      writes(name);
+      writes("\n");
+    }
+    else if(0 == strcmp(p, "ka")){
+      killAll();
+      writes("All processes killed\n");
+    }
     else {
       puts( "unknown command\n", 16 );
     }

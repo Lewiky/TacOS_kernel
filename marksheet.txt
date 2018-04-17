@@ -54,7 +54,7 @@ generality, realism, or style of a solution.
                 *OR*
 [?]           - LCD screen and PS/2 device drivers and GUI
                 *OR*
-[?]           - file system based on simplified, emulated disk
+[x]           - file system based on simplified, emulated disk
                 *OR*
 [?]           - kernel port to real, physical hardware                     
 
