@@ -10,7 +10,7 @@
  DISK_HOST        = 127.0.0.1
  DISK_PORT        = 1236
  DISK_BLOCK_NUM   = 65536
- DISK_BLOCK_LEN   =    16
+ DISK_BLOCK_LEN   =    12
 
 # part 3: targets
 

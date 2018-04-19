@@ -23,6 +23,12 @@
  LINARO_PATH      = /usr/local/gcc-linaro-5.1-2015.08-x86_64_arm-eabi
  LINARO_PREFIX    = arm-eabi
 
+ DISK_FILE        = disk.bin
+ DISK_HOST        = 127.0.0.1
+ DISK_PORT        = 1236
+ DISK_BLOCK_NUM   = 65536
+ DISK_BLOCK_LEN   =    12
+
 # part 2: build commands
 
 %.o   : %.s
