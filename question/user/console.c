@@ -132,10 +132,20 @@ void main_console() {
     }
     else if(0 == strcmp(p, "mkdir")){
       char* name = strtok(NULL, " ");
-      createFile(0,DIRECTORYTYPE,name);
-      writes("Creating Directory: ");
-      writes(name);
-      writes("\n");
+      if(strlen(name) > 6){
+        writes("Directory names must be less than 6 characters.");
+      }else{
+        char fixedName[6];
+        strcpy(&fixedName,name);
+        if(strlen(name) < 6){
+          fixedName[5] = 0;
+        }
+        createFile(0,DIRECTORYTYPE,fixedName);
+        writes("Creating Directory: ");
+        writes(fixedName);
+        writes("\n");
+      }
+      
     }
     else if(0 == strcmp(p, "ka")){
       killAll();
