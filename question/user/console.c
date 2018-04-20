@@ -149,7 +149,18 @@ void main_console() {
     }
     else if(0 == strcmp(p, "ka")){
       killAll();
+      writes("\n");
       writes("All processes killed\n");
+    }
+    else if(0 == strcmp(p, "ls")){
+      writes("\nls: \n");
+      int numKids = numChild(00000000);
+      writes(toString(numKids));
+      writes("\n");
+      for(int i = 0; i < numKids; i++){
+        writes(getName(getChildAddress(0000000,i)));
+        writes("\n");
+      }
     }
     else {
       puts( "unknown command\n", 16 );

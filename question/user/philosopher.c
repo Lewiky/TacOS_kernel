@@ -1,4 +1,6 @@
 #include "philosopher.h"
+#define MIN(x,y) ({typeof(x) x_ = (x); typeof(y) _y = (y); x_ < _y ? x_ : _y;})
+#define MAX(x,y) ({typeof(x) x_ = (x); typeof(y) _y = (y); x_ > _y ? x_ : _y;})
 
 pid_t philosophers[16];
 char* names[16] = {"Ringo","George","Paul","John","Han","Luke","Chewy","Frodo","Sam","Pippin","Merry","Aragorn","Legolas","Gandalf","Gimli","Boromir"};
@@ -23,8 +25,8 @@ void think(int num){
 }
 
 void eat(int num, int count){
-    void* left = shrm(num);
-    void* right = shrm((num+1)%16);
+    void* left = shrm(MIN(num,((num+1)%16)));
+    void* right = shrm(MAX(num,((num+1)%16)));
     writes(names[num]);
     writes(" IS EATING ");
     writes(toString(count));
