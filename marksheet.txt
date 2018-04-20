@@ -69,6 +69,30 @@ Any other documentation, notes or comments that you think are important or
 might be easy to overlook (e.g., a subtle issue or technique in associated
 source code) should go here:
 
-[...]
+##File System details:
 
+Things that work:
+    [x] storing files in a data structure
+    [/] Creating files
+        [x] with predefined compile-time input
+        [ ] with arbitary user input
+    [x] printing files and getting metdata on files
+    [ ] reading from files
+    [ ] writing to files
+    [ ] deleting files
+
+Designed to be super simple, the disk is filled with FILES:
+
+a FILE is a header followed by n blocks of content.
+a DIRECTORY is a FILE with the header type 'DIRECTORYTYPE' and then each block stores the address of a child
+A FILE is a FILE with the header type 'FILETYPE' and then each block stores some data
+
+The file system is contiguous.
+
+An issue: Currently the FILE header stores the name of the file as a pointer to a string in memory, this doesn't
+work when you create a file with user input (i.e with mkdir). This was attempted to be solved by:
+a)  Changing the char* to a char[] with some max size, this meant that blocks were now too big and corrupted other blocks
+b)  Storing the name in a seperate block and storing the address of the block in the header -> names were various block sizes
+
+With more time, I would expand method b by creating a whole new NAME struct that would allow for n-block name storage. 
 -------------------------------------------------------------------------------
