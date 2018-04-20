@@ -54,7 +54,7 @@ generality, realism, or style of a solution.
                 *OR*
 [?]           - LCD screen and PS/2 device drivers and GUI
                 *OR*
-[x]           - file system based on simplified, emulated disk //Creation and browsing of files, no writing or reading to them
+[*]           - file system based on simplified, emulated disk //Creation and browsing of files, no writing or reading to them
                 *OR*
 [?]           - kernel port to real, physical hardware                     
 
@@ -73,7 +73,7 @@ source code) should go here:
 
 Things that work:
     [x] storing files in a data structure
-    [/] Creating files
+    [*] Creating files
         [x] with predefined compile-time input
         [ ] with arbitary user input
     [x] printing files and getting metdata on files
